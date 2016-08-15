@@ -7,6 +7,12 @@ defmodule KeyValueParserTest do
     assert keywords == []
   end
 
+  test "parse/1 with unclosed quote" do
+    assert_raise KeyValueParser.InvalidTokenSyntax, "string did not terminate properly, a \" was opened but never closed", fn ->
+      KeyValueParser.parse("key:\"invalid")
+    end
+  end
+
   test "parse/1 with invalid term" do
     assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain an equals delimiter, : or =", fn ->
       KeyValueParser.parse("invalid")

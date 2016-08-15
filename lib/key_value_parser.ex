@@ -10,10 +10,14 @@ defmodule KeyValueParser do
     defexception message: "Token is invalid, it does not contain an equals delimiter, : or ="
 
     def exception(opts \\ []) do
-      term = Keyword.fetch!(opts, :term)
-      %InvalidTokenSyntax{
-        message: "The #{inspect(term)} term does not contain an equals delimiter, : or ="
-      }
+      message = opts[:message]
+      message = if message == nil do
+        term = Keyword.fetch!(opts, :term)
+        "The #{inspect(term)} term does not contain an equals delimiter, : or ="
+      else
+        message
+      end
+      %InvalidTokenSyntax{message: message}
     end
   end
 
@@ -27,8 +31,8 @@ defmodule KeyValueParser do
   as outlined in the Keyword module.
 
   ## Examples
-      iex> KeyValueParser.split("name:\"Timber Technologies\" domain:timber.io awesome:true")
-      [name: "Timber Technologies", domain: "timber.io", awesome: true]
+      iex> KeyValueParser.parse("name:\"Timber Technologies\" domain:timber.io awesome:true")
+      [name: "Timber Technologies", domain: "timber.io", awesome: "true"]
   """
   @spec parse(String.t) :: t
   def parse(input) do
@@ -72,7 +76,7 @@ defmodule KeyValueParser do
 
   # Otherwise raise
   defp do_split(<<>>, _, _acc, marker) do
-    raise "argv string did not terminate properly, a #{<<marker>>} was opened but never closed"
+    raise InvalidTokenSyntax, message: "string did not terminate properly, a #{<<marker>>} was opened but never closed"
   end
 
   defp to_keyword(term) do
