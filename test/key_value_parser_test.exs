@@ -52,6 +52,6 @@ defmodule KeyValueParserTest do
 
   test "parse/1 with leading and trailing whitespace" do
     keywords = KeyValueParser.parse("    key1:value1 key2=value2     ")
-    assert keywords == [key1: "value1", key2: "value2"]
+    assert keywords == [key2: "value2", key1: "value1"]
   end
 end

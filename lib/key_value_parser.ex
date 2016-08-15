@@ -36,14 +36,14 @@ defmodule KeyValueParser do
   """
   @spec parse(String.t) :: t
   def parse(input) do
-    do_split(trim(input), "", Keyword.new, nil)
+    do_split(trim_leading(input, " "), "", Keyword.new, nil)
   end
 
-  defp trim(string) do
+  defp trim_leading(string, to_strip) do
     case Version.compare(System.version, "1.3.0") do
-    :gt -> String.trim(string)
-    :eq -> String.trim(string)
-    :lt -> String.strip(string)
+    :gt -> String.trim_leading(string, to_strip)
+    :eq -> String.trim_leading(string, to_strip)
+    :lt -> String.lstrip(string, to_strip)
     end
   end
 
@@ -68,7 +68,7 @@ defmodule KeyValueParser do
 
   # If we have space and we are outside of a quote, start new segment
   defp do_split(<<?\s, t::binary>>, buffer, acc, nil),
-    do: do_split(String.trim_leading(t, " "), "", Keyword.merge(to_keyword(buffer), acc), nil)
+    do: do_split(trim_leading(t, " "), "", Keyword.merge(to_keyword(buffer), acc), nil)
 
   # All other characters are moved to buffer
   defp do_split(<<h, t::binary>>, buffer, acc, quote) do
