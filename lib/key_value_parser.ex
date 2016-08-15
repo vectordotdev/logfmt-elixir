@@ -36,7 +36,15 @@ defmodule KeyValueParser do
   """
   @spec parse(String.t) :: t
   def parse(input) do
-    do_split(String.trim(input), "", Keyword.new, nil)
+    do_split(trim(input), "", Keyword.new, nil)
+  end
+
+  defp trim(string) do
+    case Version.compare(System.version, "1.3.0") do
+    :gt -> String.trim(string)
+    :eq -> String.trim(string)
+    :lt -> String.strip(string)
+    end
   end
 
   # The following code was taken from the OptionParser module and
