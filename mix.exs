@@ -22,7 +22,7 @@ defmodule Plug.Mixfile do
   end
 
   def deps do
-    []
+    [{:ex_doc, ">= 0.0.0", only: :dev}]
   end
 
   defp package do

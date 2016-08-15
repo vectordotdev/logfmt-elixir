@@ -1,5 +1,6 @@
 defmodule KeyValueParserTest do
   use ExUnit.Case, async: true
+  doctest KeyValueParser
 
   test "parse/1 with a blank string" do
     keywords = KeyValueParser.parse("")
