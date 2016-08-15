@@ -36,7 +36,7 @@ defmodule KeyValueParser do
   """
   @spec parse(String.t) :: t
   def parse(input) do
-    do_split(String.trim(input, " "), "", Keyword.new, nil)
+    do_split(String.trim(input), "", Keyword.new, nil)
   end
 
   # The following code was taken from the OptionParser module and
