@@ -28,6 +28,7 @@ defmodule Plug.Mixfile do
   defp package do
     %{licenses: ["Unlicense"],
       maintainers: ["Timber.io development team"],
-      links: %{"GitHub" => "https://github.com/timberio/elixir-key-value-parser"}}
+      links: %{"GitHub" => "https://github.com/timberio/elixir-key-value-parser",
+               "Timber" => "https://timber.io"}}
   end
 end
