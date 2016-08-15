@@ -22,13 +22,19 @@ $ mix deps.get
 ## Usage
 
 ```elixir
+# with an = delimiter
 KeyValueParser.parse("key1=value1 key2=\"This is a quoted value\"")
+=> [key1: "value1", key2: "This is a quoted value"]
+
+# with a : delimiter
+KeyValueParser.parse("key1:value1 key2:\"This is a quoted value\"")
+=> [key1: "value1", key2: "This is a quoted value"]
 ```
 
 ## Shoutout
 
-If you appreciate this library, head over to [timber.io](https://timber.io). Perhaps we upgrade
-your logging infrastructure?
+If you appreciate this library, head over to [timber.io](https://timber.io). Perhaps we can
+upgrade your logging system?
 
 ## License
 

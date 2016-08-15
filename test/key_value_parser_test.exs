@@ -12,12 +12,17 @@ defmodule KeyValueParserTest do
     end
   end
 
-  test "parse/1 with valid term" do
+  test "parse/1 with valid : term" do
     keywords = KeyValueParser.parse("key:value")
     assert keywords == [key: "value"]
   end
 
-  test "parse/1 with valid quoted term" do
+  test "parse/1 with valid = term" do
+    keywords = KeyValueParser.parse("key=value")
+    assert keywords == [key: "value"]
+  end
+
+  test "parse/1 with valid : quoted term" do
     keywords = KeyValueParser.parse("key:\"this is a value\"")
     assert keywords == [key: "this is a value"]
   end
@@ -28,8 +33,13 @@ defmodule KeyValueParserTest do
     end
   end
 
-  test "parse/1 with mutliple value terms" do
+  test "parse/1 with mutliple valid : terms" do
     keywords = KeyValueParser.parse("key1:value1 key2:value2")
+    assert keywords == [key1: "value1", key2: "value2"]
+  end
+
+  test "parse/1 with mutliple valid mixed terms" do
+    keywords = KeyValueParser.parse("key1:value1 key2=value2")
     assert keywords == [key1: "value1", key2: "value2"]
   end
 end
