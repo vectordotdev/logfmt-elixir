@@ -1,4 +1,4 @@
-defmodule Plug.Mixfile do
+defmodule KeyValueParser.Mixfile do
   use Mix.Project
 
   @version "1.0.2"
