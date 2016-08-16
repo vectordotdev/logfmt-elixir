@@ -35,8 +35,14 @@ defmodule KeyValueParser do
       [name: "Timber Technologies", domain: "timber.io", awesome: "true"]
   """
   @spec parse(String.t) :: t
-  def parse(input) do
+  def parse!(input) do
     do_split(trim_leading(input), "", Keyword.new, nil)
+  end
+
+  def parse(input) do
+    parse!(input)
+  rescue
+    _ -> nil
   end
 
   defp trim_leading(string) do
