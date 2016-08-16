@@ -94,7 +94,7 @@ defmodule KeyValueParser do
   end
 
   defp to_keyword(term) do
-    parts = String.split(term,  @valid_delimiters, parts: 2)
+    parts = String.split(term, @valid_delimiters, parts: 2)
     if length(parts) == 2 do
       [key, value] = parts
       Keyword.new(["#{key}": value])
