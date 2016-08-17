@@ -35,6 +35,15 @@ KeyValueParser.parse("key1:value1 key2:\"This is a quoted value\"")
 => [key1: "value1", key2: "This is a quoted value"]
 ```
 
+## Type casting
+
+This library does not attempt to type cast values into booleans, integers, floats, etc, for a couple of reasons:
+
+1. Strings are not strictly defined with quotes. Notice `value1` above.
+2. There isn't a RFC for they key value format.
+
+Type casting should be the responsibility of the underlying data structure. If you're using an Ecto model it advised to cast your input there.
+
 ## Shoutout
 
 If you appreciate this library, head over to [timber.io](https://timber.io). Perhaps we can
