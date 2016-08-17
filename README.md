@@ -40,9 +40,9 @@ KeyValueParser.parse("key1:value1 key2:\"This is a quoted value\"")
 This library does not attempt to type cast values into booleans, integers, floats, etc, for a couple of reasons:
 
 1. Strings are not strictly defined with quotes. Notice `value1` above.
-2. There isn't a RFC for they key value format.
+2. There isn't a RFC for the key value format.
 
-Type casting should be the responsibility of the underlying data structure. If you're using an Ecto model it advised to cast your input there.
+Type casting should be the responsibility of the underlying data structure. Treat this like user input. For example, if you're using an Ecto model, it advised to cast your input through a changeset.
 
 ## Shoutout
 
