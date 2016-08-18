@@ -13,7 +13,7 @@ defmodule KeyValueParser.Mixfile do
      name: "Key Value Parser",
      docs: [extras: ["README.md"], main: "readme",
             source_ref: "v#{@version}",
-            source_url: "https://github.com/timberio/elixir-key-value-parser"]]
+            source_url: "https://github.com/timberio/key-value-parser-elixir"]]
   end
 
   # Configuration for the OTP application
@@ -28,7 +28,7 @@ defmodule KeyValueParser.Mixfile do
   defp package do
     %{licenses: ["Unlicense"],
       maintainers: ["Timber.io development team"],
-      links: %{"GitHub" => "https://github.com/timberio/elixir-key-value-parser",
+      links: %{"GitHub" => "https://github.com/timberio/key-value-parser-elixir",
                "Timber" => "https://timber.io"}}
   end
 end

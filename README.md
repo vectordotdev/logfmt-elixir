@@ -1,6 +1,6 @@
 # Key Value Parser for Elixir
 
-[![Travis](https://img.shields.io/travis/timberio/elixir-key-value-parser.svg?style=flat-square)](https://travis-ci.org/timberio/elixir-key-value-parser)
+[![Travis](https://img.shields.io/travis/timberio/key-value-parser-elixir.svg?style=flat-square)](https://travis-ci.org/timberio/key-value-parser-elixir)
 [![Hex.pm](https://img.shields.io/hexpm/v/key_value_parser.svg?style=flat-square)](https://hex.pm/packages/key_value_parser)
 [![Hex.pm](https://img.shields.io/hexpm/dt/key_value_parser.svg?style=flat-square)](https://hex.pm/packages/key_value_parser)
 
