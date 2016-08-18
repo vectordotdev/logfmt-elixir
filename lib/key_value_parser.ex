@@ -8,21 +8,10 @@ defmodule KeyValueParser do
     Exception raised when a token does not contain an equals delimiter. (: or =)
     """
     defexception message: "Token is invalid, it does not contain an equals delimiter, : or ="
-
-    def exception(opts \\ []) do
-      message = opts[:message]
-      message = if message == nil do
-        term = Keyword.fetch!(opts, :term)
-        "The #{inspect(term)} term does not contain an equals delimiter, : or ="
-      else
-        message
-      end
-      %InvalidTokenSyntax{message: message}
-    end
   end
 
   @type t :: Keyword.t
-  @valid_delimiters [":", "="]
+  @valid_delimiters [?:, ?=]
 
   @doc ~S"""
   Splits a string into a Keyword.
@@ -36,7 +25,7 @@ defmodule KeyValueParser do
   """
   @spec parse(String.t) :: t
   def parse!(input) do
-    do_split(trim_leading(input), "", Keyword.new, nil)
+    do_split(trim_leading(input), "", Keyword.new, nil, nil)
   end
 
   def parse(input) do
@@ -53,53 +42,53 @@ defmodule KeyValueParser do
     end
   end
 
-  # The following code was taken from the OptionParser module and
-  # slightly tweaked for this specific use case.
-
   # If we have an escaped quote, simply remove the escape
-  defp do_split(<<?\\, quote, t::binary>>, buffer, acc, quote),
-    do: do_split(t, <<buffer::binary, quote>>, acc, quote)
+  defp do_split(<<?\\, quote, t::binary>>, buffer, acc, quote, delimiter),
+    do: do_split(t, <<buffer::binary, quote>>, acc, quote, delimiter)
 
   # If we have a quote and we were not in a quote, start one
-  defp do_split(<<quote, t::binary>>, buffer, acc, nil) when quote in [?", ?'],
-    do: do_split(t, buffer, acc, quote)
+  defp do_split(<<quote, t::binary>>, buffer, acc, nil, delimiter) when quote in [?", ?'],
+    do: do_split(t, buffer, acc, quote, delimiter)
 
   # If we have a quote and we were inside it, close it
-  defp do_split(<<quote, t::binary>>, buffer, acc, quote),
-    do: do_split(t, buffer, acc, nil)
+  defp do_split(<<quote, t::binary>>, buffer, acc, quote, delimiter),
+    do: do_split(t, buffer, acc, nil, delimiter)
 
   # If we have an escaped quote/space, simply remove the escape as long as we are not inside a quote
-  defp do_split(<<?\\, h, t::binary>>, buffer, acc, nil) when h in [?\s, ?', ?"],
-    do: do_split(t, <<buffer::binary, h>>, acc, nil)
+  defp do_split(<<?\\, h, t::binary>>, buffer, acc, nil, delimiter) when h in [?\s, ?', ?"],
+    do: do_split(t, <<buffer::binary, h>>, acc, nil, delimiter)
+
+  # If we have a delimiter, are not inside a quote, and we have not already supplied a delimiter, record it
+  defp do_split(<<delimiter, t::binary>>, buffer, acc, nil, nil) when delimiter in @valid_delimiters,
+    do: do_split(t, <<buffer::binary, delimiter>>, acc, nil, delimiter)
 
   # If we have space and we are outside of a quote, start new segment
-  defp do_split(<<?\s, t::binary>>, buffer, acc, nil),
-    do: do_split(trim_leading(t), "", Keyword.merge(to_keyword(buffer), acc), nil)
+  defp do_split(<<?\s, t::binary>>, buffer, acc, nil, delimiter),
+    do: do_split(trim_leading(t), "", Keyword.merge(to_keyword(buffer, delimiter), acc), nil, nil)
 
   # All other characters are moved to buffer
-  defp do_split(<<h, t::binary>>, buffer, acc, quote) do
-    do_split(t, <<buffer::binary, h>>, acc, quote)
+  defp do_split(<<h, t::binary>>, buffer, acc, quote, delimiter) do
+    do_split(t, <<buffer::binary, h>>, acc, quote, delimiter)
   end
 
   # Finish the string expecting a nil marker
-  defp do_split(<<>>, "", acc, nil),
+  defp do_split(<<>>, "", acc, nil, _delimiter),
     do: acc
 
-  defp do_split(<<>>, buffer, acc, nil),
-    do: Enum.reverse(Keyword.merge(to_keyword(buffer), acc))
+  defp do_split(<<>>, buffer, acc, nil, delimiter),
+    do: Enum.reverse(Keyword.merge(to_keyword(buffer, delimiter), acc))
 
   # Otherwise raise
-  defp do_split(<<>>, _, _acc, marker) do
+  defp do_split(<<>>, _, _acc, marker, _delimiter) do
     raise InvalidTokenSyntax, message: "string did not terminate properly, a #{<<marker>>} was opened but never closed"
   end
 
-  defp to_keyword(term) do
-    parts = String.split(term, @valid_delimiters, parts: 2)
-    if length(parts) == 2 do
-      [key, value] = parts
-      Keyword.new(["#{key}": value])
-    else
-      raise InvalidTokenSyntax, term: term
-    end
+  defp to_keyword(term, nil) do
+    raise InvalidTokenSyntax, message: "The #{inspect(term)} term does not contain a delimiter (#{Enum.map_join(@valid_delimiters, " or ", fn delimiter -> <<delimiter>> end)})"
+  end
+
+  defp to_keyword(term, delimiter) do
+    [key, value] = String.split(term, <<delimiter>>, parts: 2)
+    Keyword.new(["#{key}": value])
   end
 end

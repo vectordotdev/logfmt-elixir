@@ -19,8 +19,14 @@ defmodule KeyValueParserTest do
   end
 
   test "parse!/1 with invalid term" do
-    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain an equals delimiter, : or =", fn ->
+    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain a delimiter (: or =)", fn ->
       KeyValueParser.parse!("invalid")
+    end
+  end
+
+  test "parse!/1 with split inside quotes" do
+    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"keyvalue:test\" term does not contain a delimiter (: or =)", fn ->
+      raise KeyValueParser.parse!("key\"value:test\"")
     end
   end
 
@@ -40,7 +46,7 @@ defmodule KeyValueParserTest do
   end
 
   test "parse!/1 with mutliple terms and one invalid" do
-    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain an equals delimiter, : or =", fn ->
+    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain a delimiter (: or =)", fn ->
       KeyValueParser.parse!("key:value invalid")
     end
   end
