@@ -37,11 +37,12 @@ KeyValueParser.parse("key1:value1 key2:\"This is a quoted value\" key3:1 key4")
 
 ## Logfmt standard
 
-This library will parse string following the logfmt standard. A couple of diffeernces:
+This library will parse logfmt formatted strings with a few modifications:
 
 1. We also accept `:` as a delimited instead of `=`
 2. We do not cast or coerce values. All values will remain as string. Type casting should be the responsibility of your struct (ex: an ecto model).
 3. Values are decoded into a keyword list to preserve order.
+4. Eclusively boolean keywords will raise an error. This serves to be a little more strict so that we aren't parsing non logfmt sentences.
 
 ## Type casting note
 
