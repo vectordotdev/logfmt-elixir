@@ -8,26 +8,32 @@ defmodule KeyValueParserTest do
   end
 
   test "parse!/1 with a blank string" do
-    keywords = KeyValueParser.parse!("")
-    assert keywords == []
+    assert_raise KeyValueParser.InvalidSyntaxError, "String is invalid, it does not contain an equals delimiter, : or =", fn ->
+      KeyValueParser.parse!("")
+    end
   end
 
   test "parse!/1 with unclosed quote" do
-    assert_raise KeyValueParser.InvalidTokenSyntax, "string did not terminate properly, a \" was opened but never closed", fn ->
+    assert_raise KeyValueParser.InvalidSyntaxError, "string did not terminate properly, a \" was opened but never closed", fn ->
       KeyValueParser.parse!("key:\"invalid")
     end
   end
 
   test "parse!/1 with invalid term" do
-    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain a delimiter (: or =)", fn ->
+    assert_raise KeyValueParser.InvalidSyntaxError, "String is invalid, it does not contain an equals delimiter, : or =", fn ->
       KeyValueParser.parse!("invalid")
     end
   end
 
   test "parse!/1 with split inside quotes" do
-    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"keyvalue:test\" term does not contain a delimiter (: or =)", fn ->
+    assert_raise KeyValueParser.InvalidSyntaxError, "String is invalid, it does not contain an equals delimiter, : or =", fn ->
       raise KeyValueParser.parse!("key\"value:test\"")
     end
+  end
+
+  test "parse!/1 with a single term / boolean" do
+    keywords = KeyValueParser.parse!("key:value is_awesome")
+    assert keywords == [key: "value", is_awesome: true]
   end
 
   test "parse!/1 with valid : term" do
@@ -45,10 +51,9 @@ defmodule KeyValueParserTest do
     assert keywords == [key: "this is a value"]
   end
 
-  test "parse!/1 with mutliple terms and one invalid" do
-    assert_raise KeyValueParser.InvalidTokenSyntax, "The \"invalid\" term does not contain a delimiter (: or =)", fn ->
-      KeyValueParser.parse!("key:value invalid")
-    end
+  test "parse!/1 with mutliple terms and one is a boolean" do
+    keywords = KeyValueParser.parse!("key:value another")
+    assert keywords == [key: "value", another: true]
   end
 
   test "parse!/1 with mutliple valid : terms" do

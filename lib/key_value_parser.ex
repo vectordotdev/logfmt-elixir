@@ -3,15 +3,16 @@ defmodule KeyValueParser do
   This module contains functions to parse key value pairs.
   """
 
-  defmodule InvalidTokenSyntax do
+  defmodule InvalidSyntaxError do
     @moduledoc """
     Exception raised when a token does not contain an equals delimiter. (: or =)
     """
-    defexception message: "Token is invalid, it does not contain an equals delimiter, : or ="
+    defexception message: "String is invalid, it does not contain an equals delimiter, : or ="
   end
 
   @type t :: Keyword.t
-  @valid_delimiters [?:, ?=]
+  @valid_delimiters [":", "="]
+  @valid_delimiters_binary [?:, ?=]
 
   @doc ~S"""
   Splits a string into a Keyword.
@@ -25,7 +26,16 @@ defmodule KeyValueParser do
   """
   @spec parse(String.t) :: t
   def parse!(input) do
-    do_split(trim_leading(input), "", Keyword.new, nil, nil)
+    if String.contains?(input, @valid_delimiters) do
+      keywords = do_split(trim_leading(input), "", Keyword.new, nil, nil)
+      if Keyword.values(keywords) == [true] do
+        raise InvalidSyntaxError
+      else
+        keywords
+      end
+    else
+      raise InvalidSyntaxError
+    end
   end
 
   def parse(input) do
@@ -59,7 +69,7 @@ defmodule KeyValueParser do
     do: do_split(t, <<buffer::binary, h>>, acc, nil, delimiter)
 
   # If we have a delimiter, are not inside a quote, and we have not already supplied a delimiter, record it
-  defp do_split(<<delimiter, t::binary>>, buffer, acc, nil, nil) when delimiter in @valid_delimiters,
+  defp do_split(<<delimiter, t::binary>>, buffer, acc, nil, nil) when delimiter in @valid_delimiters_binary,
     do: do_split(t, <<buffer::binary, delimiter>>, acc, nil, delimiter)
 
   # If we have space and we are outside of a quote, start new segment
@@ -75,16 +85,17 @@ defmodule KeyValueParser do
   defp do_split(<<>>, "", acc, nil, _delimiter),
     do: acc
 
+  # Throw the last part into a keyword
   defp do_split(<<>>, buffer, acc, nil, delimiter),
     do: Enum.reverse(Keyword.merge(to_keyword(buffer, delimiter), acc))
 
   # Otherwise raise
   defp do_split(<<>>, _, _acc, marker, _delimiter) do
-    raise InvalidTokenSyntax, message: "string did not terminate properly, a #{<<marker>>} was opened but never closed"
+    raise InvalidSyntaxError, message: "string did not terminate properly, a #{<<marker>>} was opened but never closed"
   end
 
   defp to_keyword(term, nil) do
-    raise InvalidTokenSyntax, message: "The #{inspect(term)} term does not contain a delimiter (#{Enum.map_join(@valid_delimiters, " or ", fn delimiter -> <<delimiter>> end)})"
+    Keyword.new(["#{term}": true])
   end
 
   defp to_keyword(term, delimiter) do

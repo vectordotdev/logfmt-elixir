@@ -1,10 +1,10 @@
-# Key Value Parser for Elixir
+# Key Value / Logfmt Parser for Elixir
 
 [![Travis](https://img.shields.io/travis/timberio/key-value-parser-elixir.svg?style=flat-square)](https://travis-ci.org/timberio/key-value-parser-elixir)
 [![Hex.pm](https://img.shields.io/hexpm/v/key_value_parser.svg?style=flat-square)](https://hex.pm/packages/key_value_parser)
 [![Hex.pm](https://img.shields.io/hexpm/dt/key_value_parser.svg?style=flat-square)](https://hex.pm/packages/key_value_parser)
 
-A simple key value parser for Elixir, brought to you by [Timber.io](https://timber.io). This
+A simple key value / logfmt parser for Elixir, brought to you by [Timber.io](https://timber.io). This
 library is used to parse millions of log lines every day.
 
 ## Installation
@@ -27,15 +27,23 @@ $ mix deps.get
 
 ```elixir
 # with an = delimiter
-KeyValueParser.parse("key1=value1 key2=\"This is a quoted value\"")
-=> [key1: "value1", key2: "This is a quoted value"]
+KeyValueParser.parse("key1=value1 key2=\"This is a quoted value\" key3=1 key4")
+=> [key1: "value1", key2: "This is a quoted value", key3: "1", key4=true]
 
 # with a : delimiter
-KeyValueParser.parse("key1:value1 key2:\"This is a quoted value\"")
-=> [key1: "value1", key2: "This is a quoted value"]
+KeyValueParser.parse("key1:value1 key2:\"This is a quoted value\" key3:1 key4")
+=> [key1: "value1", key2: "This is a quoted value", key3: "1", key4=true]
 ```
 
-## Type casting
+## Logfmt standard
+
+This library will parse string following the logfmt standard. A couple of diffeernces:
+
+1. We also accept `:` as a delimited instead of `=`
+2. We do not cast or coerce values. All values will remain as string. Type casting should be the responsibility of your struct (ex: an ecto model).
+3. Values are decoded into a keyword list to preserve order.
+
+## Type casting note
 
 This library does not attempt to type cast values into booleans, integers, floats, etc, for a couple of reasons:
 
