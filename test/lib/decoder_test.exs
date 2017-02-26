@@ -37,8 +37,14 @@ defmodule Logfmt.DecoderTest do
     end
 
     test "with split inside quotes" do
-      assert_raise Decoder.InvalidSyntaxError, "No value detected, all keys must contain a value delimited by : or =", fn ->
+      assert_raise Decoder.InvalidSyntaxError, "a \" was detected but was not at the begginning of the key value", fn ->
         Decoder.decode!("key\"value:test\"")
+      end
+    end
+
+    test "with quote inside the value" do
+      assert_raise Decoder.InvalidSyntaxError, "a \" was detected but was not at the begginning of the value", fn ->
+        Decoder.decode!("key:val\"ue")
       end
     end
 
@@ -90,6 +96,12 @@ defmodule Logfmt.DecoderTest do
     test "with an array like value" do
       keywords = Decoder.decode!("key:[1,2,3]")
       assert keywords == [key: "[1,2,3]"]
+    end
+
+    test "with json" do
+      assert_raise Decoder.InvalidSyntaxError, "a \" was detected but was not at the begginning of the key value", fn ->
+        Decoder.decode!("{\"key\":\"value\"}")
+      end
     end
   end
 end
