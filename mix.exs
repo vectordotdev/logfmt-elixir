@@ -1,19 +1,19 @@
-defmodule KeyValueParser.Mixfile do
+defmodule Logfmt.Mixfile do
   use Mix.Project
 
-  @version "1.0.6"
+  @version "1.0.0"
 
   def project do
-    [app: :key_value_parser,
+    [app: :timber_logfmt,
      version: @version,
      elixir: ">= 1.2.0",
      deps: deps(),
      package: package(),
-     description: "A simple key value parser",
-     name: "Key Value Parser",
+     description: "A simple logfmt decoder",
+     name: "Logfmt",
      docs: [extras: ["README.md"], main: "readme",
             source_ref: "v#{@version}",
-            source_url: "https://github.com/timberio/key-value-parser-elixir"]]
+            source_url: "https://github.com/timberio/logfmt-elixir"]]
   end
 
   # Configuration for the OTP application
@@ -28,7 +28,7 @@ defmodule KeyValueParser.Mixfile do
   defp package do
     %{licenses: ["Unlicense"],
       maintainers: ["Timber.io development team"],
-      links: %{"GitHub" => "https://github.com/timberio/key-value-parser-elixir",
+      links: %{"GitHub" => "https://github.com/timberio/logfmt-elixir",
                "Timber" => "https://timber.io"}}
   end
 end
