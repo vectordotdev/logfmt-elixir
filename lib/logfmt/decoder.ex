@@ -58,7 +58,6 @@ defmodule Logfmt.Decoder do
 
   # If we have a quote, we were not in a quote, and we are not buffering, start buffering
   defp do_decode(<<quote, t::binary>>, "", value_buffer, keywords, nil, nil) when quote in @quotes do
-    raise quote
     do_decode(t, "", value_buffer, keywords, quote, nil)
   end
 
@@ -93,8 +92,13 @@ defmodule Logfmt.Decoder do
   defp do_decode(<<delimiter, t::binary>>, key_buffer, value_buffer, keywords, nil, nil) when delimiter in @valid_delimiters_binary,
     do: do_decode(t, key_buffer, value_buffer, keywords, nil, delimiter)
 
+  # If we have space, we are outside of a quote, and we do not have a delimiter, raise
+  defp do_decode(<<?\s, t::binary>>, key_buffer, value_buffer, keywords, nil, nil) do
+    raise InvalidSyntaxError, message: "white space was enountered within a key before a value was specified"
+  end
+
   # If we have space and we are outside of a quote, start new segment
-  defp do_decode(<<?\s, t::binary>>, key_buffer, value_buffer, keywords, nil, _delimiter),
+  defp do_decode(<<?\s, t::binary>>, key_buffer, value_buffer, keywords, nil, delimiter) when not is_nil(delimiter),
     do: do_decode(trim_leading(t), "", "", Keyword.merge(to_keyword(key_buffer, value_buffer), keywords), nil, nil)
 
   # All other characters are moved to buffer

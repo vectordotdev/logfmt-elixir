@@ -103,5 +103,16 @@ defmodule Logfmt.DecoderTest do
         Decoder.decode!("{\"key\":\"value\"}")
       end
     end
+
+    test "with tags" do
+      keywords = Decoder.decode!("sample#time=35ms")
+      assert keywords == ["sample#time": "35ms"]
+    end
+
+    test "backtraces" do
+      assert_raise Decoder.InvalidSyntaxError, "white space was enountered within a key before a value was specified", fn ->
+        Decoder.decode!("(app name) path/to/file.ex:34")
+      end
+    end
   end
 end
