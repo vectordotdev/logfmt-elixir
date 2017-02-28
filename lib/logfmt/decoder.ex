@@ -93,7 +93,7 @@ defmodule Logfmt.Decoder do
     do: do_decode(t, key_buffer, value_buffer, keywords, nil, delimiter)
 
   # If we have space, we are outside of a quote, and we do not have a delimiter, raise
-  defp do_decode(<<?\s, t::binary>>, key_buffer, value_buffer, keywords, nil, nil) do
+  defp do_decode(<<?\s, _t::binary>>, _key_buffer, _value_buffer, _keywords, nil, nil) do
     raise InvalidSyntaxError, message: "white space was enountered within a key before a value was specified"
   end
 
