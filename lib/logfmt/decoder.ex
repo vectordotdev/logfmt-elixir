@@ -136,7 +136,7 @@ defmodule Logfmt.Decoder do
   end
 
   # Throw the last part into a keyword
-  defp do_decode(<<>>, key_buffer, value_buffer, keywords, nil, delimiter),
+  defp do_decode(<<>>, key_buffer, value_buffer, keywords, nil, _delimiter),
     do: Enum.reverse(Keyword.merge(to_keyword(key_buffer, value_buffer), keywords))
 
   # Otherwise raise
