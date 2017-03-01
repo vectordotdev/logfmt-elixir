@@ -149,6 +149,11 @@ defmodule Logfmt.DecoderTest do
       end
     end
 
+    test "quotes keys" do
+      keywords = Decoder.decode!("\"sample | > } metric\":1")
+      assert keywords == ["sample | > } metric": "1"]
+    end
+
     test "with . character" do
       keywords = Decoder.decode!("sample.metric:1")
       assert keywords == ["sample.metric": "1"]
