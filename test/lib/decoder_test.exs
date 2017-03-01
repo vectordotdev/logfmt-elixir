@@ -8,7 +8,7 @@ defmodule Logfmt.DecoderTest do
   describe "Logfmt.Decoder.decode/1" do
     test "does not raise an exception" do
       result = Decoder.decode("invalid")
-      assert result == {:error, "String is invalid, it does not contain a key/value delimiter, : or ="}
+      assert result == {:error, "valueless keywords are not allowed"}
     end
 
     test "success" do
@@ -19,7 +19,7 @@ defmodule Logfmt.DecoderTest do
 
   describe "Logfmt.Decode.decode!/1" do
     test "with a blank string" do
-      assert_raise Decoder.InvalidSyntaxError, "String is invalid, it does not contain a key/value delimiter, : or =", fn ->
+      assert_raise Decoder.InvalidSyntaxError, "blank strings cannot be decoded", fn ->
         Decoder.decode!("")
       end
     end
@@ -31,7 +31,7 @@ defmodule Logfmt.DecoderTest do
     end
 
     test "with invalid term" do
-      assert_raise Decoder.InvalidSyntaxError, "String is invalid, it does not contain a key/value delimiter, : or =", fn ->
+      assert_raise Decoder.InvalidSyntaxError, "valueless keywords are not allowed", fn ->
         Decoder.decode!("invalid")
       end
     end
@@ -99,7 +99,7 @@ defmodule Logfmt.DecoderTest do
     end
 
     test "with json" do
-      assert_raise Decoder.InvalidSyntaxError, "a \" was detected but was not at the begginning of the key value", fn ->
+      assert_raise Decoder.InvalidSyntaxError, "a { was detected but is not a valid character for a key", fn ->
         Decoder.decode!("{\"key\":\"value\"}")
       end
     end
@@ -109,10 +109,54 @@ defmodule Logfmt.DecoderTest do
       assert keywords == ["sample#time": "35ms"]
     end
 
-    test "backtraces" do
-      assert_raise Decoder.InvalidSyntaxError, "white space was enountered within a key before a value was specified", fn ->
+    test "a backtrace like line" do
+      assert_raise Decoder.InvalidSyntaxError, "a ( was detected but is not a valid character for a key", fn ->
         Decoder.decode!("(app name) path/to/file.ex:34")
       end
+    end
+
+    test "whitespace in the key" do
+      assert_raise Decoder.InvalidSyntaxError, "white space was enountered within a key before a value was specified", fn ->
+        Decoder.decode!("this is a key:value")
+      end
+    end
+
+    test "with a \\ character" do
+      assert_raise Decoder.InvalidSyntaxError, "a \\ was detected but is not a valid character for a key", fn ->
+        Decoder.decode!("test\\key:value")
+      end
+    end
+
+    test "with a _ character" do
+      keywords = Decoder.decode!("test_key:1")
+      assert keywords == ["test_key": "1"]
+    end
+
+    test "with a - character" do
+      keywords = Decoder.decode!("test-key:1")
+      assert keywords == ["test-key": "1"]
+    end
+
+    test "with a | character" do
+      assert_raise Decoder.InvalidSyntaxError, "a | was detected but is not a valid character for a key", fn ->
+        Decoder.decode!("test|key:value")
+      end
+    end
+
+    test "with a > character" do
+      assert_raise Decoder.InvalidSyntaxError, "a > was detected but is not a valid character for a key", fn ->
+        Decoder.decode!("test>key:value")
+      end
+    end
+
+    test "with . character" do
+      keywords = Decoder.decode!("sample.metric:1")
+      assert keywords == ["sample.metric": "1"]
+    end
+
+    test "with a tag" do
+      keywords = Decoder.decode!("sample#metric:1")
+      assert keywords == ["sample#metric": "1"]
     end
   end
 end

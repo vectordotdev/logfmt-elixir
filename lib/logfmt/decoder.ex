@@ -8,8 +8,11 @@ defmodule Logfmt.Decoder do
   @type t :: Keyword.t
 
   @quotes [?", ?']
-  @valid_delimiters [":", "="]
-  @valid_delimiters_binary [?:, ?=]
+  @valid_delimiters [?:, ?=]
+  lower_case = (?a..?z) |> Enum.to_list()
+  upper_case = (?A..?Z) |> Enum.to_list()
+  numbers = (?0..?9) |> Enum.to_list()
+  @valid_key_chars lower_case ++ upper_case ++ numbers ++ [?#, ?_, ?-, ?.]
 
   @doc ~S"""
   Decodes a logfmt encoded string into a Keyword.t
@@ -19,12 +22,12 @@ defmodule Logfmt.Decoder do
       [name: "Timber Technologies", domain: "timber.io", awesome: "true"]
   """
   @spec decode!(binary) :: t
+  def decode!("") do
+    raise InvalidSyntaxError, message: "blank strings cannot be decoded"
+  end
+
   def decode!(input) do
-    if String.contains?(input, @valid_delimiters) do
-      do_decode(trim_leading(input), "", "", Keyword.new(), nil, nil)
-    else
-      raise InvalidSyntaxError, "String is invalid, it does not contain a key/value delimiter, : or ="
-    end
+    do_decode(trim_leading(input), "", "", Keyword.new(), nil, nil)
   end
 
   @doc ~S"""
@@ -49,10 +52,13 @@ defmodule Logfmt.Decoder do
     end
   end
 
-  # If we have an escaped quote, simply remove the escape
+  # If we have an escaped quote, and we haven't encountered a delimiter, simply remove the escape
+  # append to the key_buffer
   defp do_decode(<<?\\, quote, t::binary>>, key_buffer, value_buffer, keywords, quote, nil),
     do: do_decode(t, <<key_buffer::binary, quote>>, value_buffer, keywords, quote, nil)
 
+  # If we have an escaped quote, and we haven't encountered a delimiter, simply remove the escape
+  # append to the value_buffer
   defp do_decode(<<?\\, quote, t::binary>>, key_buffer, value_buffer, keywords, quote, delimiter),
     do: do_decode(t, key_buffer, <<value_buffer::binary, quote>>, keywords, quote, delimiter)
 
@@ -89,7 +95,7 @@ defmodule Logfmt.Decoder do
     do: do_decode(t, key_buffer, <<value_buffer::binary, h>>, keywords, nil, delimiter)
 
   # If we have a delimiter, are not inside a quote, and we have not already supplied a delimiter, discard it
-  defp do_decode(<<delimiter, t::binary>>, key_buffer, value_buffer, keywords, nil, nil) when delimiter in @valid_delimiters_binary,
+  defp do_decode(<<delimiter, t::binary>>, key_buffer, value_buffer, keywords, nil, nil) when delimiter in @valid_delimiters,
     do: do_decode(t, key_buffer, value_buffer, keywords, nil, delimiter)
 
   # If we have space, we are outside of a quote, and we do not have a delimiter, raise
@@ -101,9 +107,18 @@ defmodule Logfmt.Decoder do
   defp do_decode(<<?\s, t::binary>>, key_buffer, value_buffer, keywords, nil, delimiter) when not is_nil(delimiter),
     do: do_decode(trim_leading(t), "", "", Keyword.merge(to_keyword(key_buffer, value_buffer), keywords), nil, nil)
 
-  # All other characters are moved to buffer
-  defp do_decode(<<h, t::binary>>, key_buffer, value_buffer, keywords, quote, nil) do
+  # If we are in a quote, move all characters to the buffer
+  defp do_decode(<<h, t::binary>>, key_buffer, value_buffer, keywords, quote, nil) when not is_nil(quote) do
     do_decode(t, <<key_buffer::binary, h>>, value_buffer, keywords, quote, nil)
+  end
+
+  # If we are not in a quote, move all *valid* characters to the buffer
+  defp do_decode(<<h, t::binary>>, key_buffer, value_buffer, keywords, quote, nil) when h in @valid_key_chars do
+    do_decode(t, <<key_buffer::binary, h>>, value_buffer, keywords, quote, nil)
+  end
+
+  defp do_decode(<<h, _t::binary>>, _key_buffer, _value_buffer, _keywords, _quote, nil) do
+    raise InvalidSyntaxError, message: "a #{<<h>>} was detected but is not a valid character for a key"
   end
 
   # All other characters are moved to buffer
@@ -115,8 +130,13 @@ defmodule Logfmt.Decoder do
   defp do_decode(<<>>, "", "", keywords, nil, _delimiter),
     do: keywords
 
+  # Raise if we did not encounter a delimiter
+  defp do_decode(<<>>, _key_buffer, _value_buffer, _keywords, nil, nil) do
+    raise InvalidSyntaxError, message: "valueless keywords are not allowed"
+  end
+
   # Throw the last part into a keyword
-  defp do_decode(<<>>, key_buffer, value_buffer, keywords, nil, _delimiter),
+  defp do_decode(<<>>, key_buffer, value_buffer, keywords, nil, delimiter),
     do: Enum.reverse(Keyword.merge(to_keyword(key_buffer, value_buffer), keywords))
 
   # Otherwise raise

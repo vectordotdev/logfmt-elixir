@@ -47,6 +47,7 @@ We deviated slightly from the logfmt spec:
 2. We do not cast or coerce values. All values will parsed into a string. This is because logfmt does not have any syntax for types. Ex: `key:true` could evaluate to `true` or `"true"`.
 3. Values are decoded into a `Keyword.t` to preserve the order.
 4. Valueless keywords will error. In the context of logging, this makes virtually any string valid, which is not ideal.
+5. Unless keys are quoted, the charaters allowed are restricted.
 
 ## Shoutout
 
