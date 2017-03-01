@@ -8,12 +8,12 @@ defmodule Logfmt.DecoderTest do
   describe "Logfmt.Decoder.decode/1" do
     test "does not raise an exception" do
       result = Decoder.decode("invalid")
-      assert result == {:error, "valueless keywords are not allowed"}
+      assert result == {:error, "valueless maps are not allowed"}
     end
 
     test "success" do
       result = Decoder.decode("key=value")
-      assert result == {:ok, [key: "value"]}
+      assert result == {:ok, %{"key" => "value"}}
     end
   end
 
@@ -31,7 +31,7 @@ defmodule Logfmt.DecoderTest do
     end
 
     test "with invalid term" do
-      assert_raise Decoder.InvalidSyntaxError, "valueless keywords are not allowed", fn ->
+      assert_raise Decoder.InvalidSyntaxError, "valueless maps are not allowed", fn ->
         Decoder.decode!("invalid")
       end
     end
@@ -50,52 +50,52 @@ defmodule Logfmt.DecoderTest do
 
     test "with valid : term" do
       keywords = Decoder.decode!("key:value")
-      assert keywords == [key: "value"]
+      assert keywords == %{"key" =>"value"}
     end
 
     test "with valid : term that has a delimiter in the value" do
       keywords = Decoder.decode!("key:value1:value2")
-      assert keywords == [key: "value1:value2"]
+      assert keywords == %{"key" => "value1:value2"}
     end
 
     test "with valid = term" do
       keywords = Decoder.decode!("key=value")
-      assert keywords == [key: "value"]
+      assert keywords == %{"key" => "value"}
     end
 
     test "with valid = term that has a delimiter in the value" do
       keywords = Decoder.decode!("key=value1=value2")
-      assert keywords == [key: "value1=value2"]
+      assert keywords == %{"key" => "value1=value2"}
     end
 
     test "with valid : quoted term" do
       keywords = Decoder.decode!("key:\"this is a value\"")
-      assert keywords == [key: "this is a value"]
+      assert keywords == %{"key" => "this is a value"}
     end
 
     test "with mutliple valid : terms" do
       keywords = Decoder.decode!("key1:value1 key2:value2")
-      assert keywords == [key1: "value1", key2: "value2"]
+      assert keywords == %{"key1" => "value1", "key2" => "value2"}
     end
 
     test "with mutliple valid mixed terms" do
       keywords = Decoder.decode!("key1:value1 key2=value2")
-      assert keywords == [key1: "value1", key2: "value2"]
+      assert keywords == %{"key1" => "value1", "key2" => "value2"}
     end
 
     test "with leading and trailing whitespace" do
       keywords = Decoder.decode!("    key1:value1 key2=value2     ")
-      assert keywords == [key2: "value2", key1: "value1"]
+      assert keywords == %{"key2" => "value2", "key1" => "value1"}
     end
 
     test "with commas in the value" do
       keywords = Decoder.decode!("key:1,2,3")
-      assert keywords == [key: "1,2,3"]
+      assert keywords == %{"key" => "1,2,3"}
     end
 
     test "with an array like value" do
       keywords = Decoder.decode!("key:[1,2,3]")
-      assert keywords == [key: "[1,2,3]"]
+      assert keywords == %{"key" => "[1,2,3]"}
     end
 
     test "with json" do
@@ -106,7 +106,7 @@ defmodule Logfmt.DecoderTest do
 
     test "with tags" do
       keywords = Decoder.decode!("sample#time=35ms")
-      assert keywords == ["sample#time": "35ms"]
+      assert keywords == %{"sample#time" => "35ms"}
     end
 
     test "a backtrace like line" do
@@ -129,12 +129,12 @@ defmodule Logfmt.DecoderTest do
 
     test "with a _ character" do
       keywords = Decoder.decode!("test_key:1")
-      assert keywords == ["test_key": "1"]
+      assert keywords == %{"test_key" => "1"}
     end
 
     test "with a - character" do
       keywords = Decoder.decode!("test-key:1")
-      assert keywords == ["test-key": "1"]
+      assert keywords == %{"test-key" => "1"}
     end
 
     test "with a | character" do
@@ -151,23 +151,22 @@ defmodule Logfmt.DecoderTest do
 
     test "quotes keys" do
       keywords = Decoder.decode!("\"sample | > } metric\":1")
-      assert keywords == ["sample | > } metric": "1"]
+      assert keywords == %{"sample | > } metric" => "1"}
     end
 
     test "with . character" do
       keywords = Decoder.decode!("sample.metric:1")
-      assert keywords == ["sample.metric": "1"]
+      assert keywords == %{"sample.metric" => "1"}
     end
 
     test "with a tag" do
       keywords = Decoder.decode!("sample#metric:1")
-      assert keywords == ["sample#metric": "1"]
+      assert keywords == %{"sample#metric" => "1"}
     end
 
     test "just a key" do
-      assert_raise Decoder.InvalidSyntaxError, "No value detected for key key, all keys must contain a value delimited by : or =", fn ->
-        Decoder.decode!("key:")
-      end
+      keywords = Decoder.decode!("key:")
+      assert keywords == %{"key" => ""}
     end
   end
 end
