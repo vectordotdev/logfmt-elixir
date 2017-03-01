@@ -148,6 +148,10 @@ defmodule Logfmt.Decoder do
     raise InvalidSyntaxError, message: "No value detected for key #{key_buffer}, all keys must contain a value delimited by : or ="
   end
 
+  defp to_keyword(key_buffer, "") do
+    raise InvalidSyntaxError, message: "No value detected for key #{key_buffer}, all keys must contain a value delimited by : or ="
+  end
+
   defp to_keyword(key_buffer, value_buffer) do
     Keyword.new(["#{key_buffer}": value_buffer])
   end

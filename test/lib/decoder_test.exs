@@ -163,5 +163,11 @@ defmodule Logfmt.DecoderTest do
       keywords = Decoder.decode!("sample#metric:1")
       assert keywords == ["sample#metric": "1"]
     end
+
+    test "just a key" do
+      assert_raise Decoder.InvalidSyntaxError, "No value detected for key key, all keys must contain a value delimited by : or =", fn ->
+        Decoder.decode!("key:")
+      end
+    end
   end
 end
