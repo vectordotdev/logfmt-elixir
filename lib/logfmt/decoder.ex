@@ -8,7 +8,7 @@ defmodule Logfmt.Decoder do
   @type t :: map
 
   @quotes [?", ?']
-  @valid_delimiters [?:, ?=]
+  @valid_delimiters [?=]
   lower_case = (?a..?z) |> Enum.to_list()
   upper_case = (?A..?Z) |> Enum.to_list()
   numbers = (?0..?9) |> Enum.to_list()
@@ -18,7 +18,7 @@ defmodule Logfmt.Decoder do
   Decodes a logfmt encoded string into a map
 
   ## Examples
-      iex> Logfmt.decode!("name:\"Timber Technologies\" domain:timber.io awesome:true")
+      iex> Logfmt.decode!("name=\"Timber Technologies\" domain=timber.io awesome=true")
       %{"name" => "Timber Technologies", "domain" => "timber.io", "awesome" => "true"}
   """
   @spec decode!(binary) :: t
@@ -34,7 +34,7 @@ defmodule Logfmt.Decoder do
   Same as `decode!/1` except that it returns the error inline instead of raises.
 
   ## Examples
-      iex> Logfmt.decode("name:\"Timber Technologies\" domain:timber.io awesome:true")
+      iex> Logfmt.decode("name=\"Timber Technologies\" domain=timber.io awesome=true")
       {:ok, %{"name" => "Timber Technologies", "domain" => "timber.io", "awesome" => "true"}}
   """
   @spec decode(binary) :: {:ok, t} | {:error, String.t}
